@@ -1463,7 +1463,7 @@
             <li>
               <span class="bullet">✓</span>
               <div>
-                <strong>Scientific Progressive Overload:</strong> An exact gym or home exercise blueprint configured to your body archetype.
+                <strong>Scientific Progressive Overload:</strong> An exact gym exercise blueprint configured to your body archetype.
               </div>
             </li>
             <li>
@@ -1713,8 +1713,8 @@
             <div class="plan-price-tag bebas">₱2,000</div>
           </div>
 
-          <!-- Plan Card 2 -->
-          <div class="plan-row" data-plan="3 Months Plan" data-price="3000">
+          <!-- Plan Card 2 (UPDATED: 4k Pricing Integration) -->
+          <div class="plan-row" data-plan="3 Months Plan" data-price="4000">
             <div class="plan-radio-indicator"></div>
             <div class="plan-main-details">
               <div class="plan-title-row">
@@ -1722,11 +1722,11 @@
               </div>
               <div class="plan-desc" style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 6px;">Build solid training habits and achieve visible physical changes.</div>
               <div class="plan-features-mini">
-                <div class="plan-feature-item">✓ Home/Gym Custom Routine</div>
+                <div class="plan-feature-item">✓ Gym Custom Routine</div>
                 <div class="plan-feature-item">✓ Direct Messenger Support</div>
               </div>
             </div>
-            <div class="plan-price-tag bebas">₱3,000</div>
+            <div class="plan-price-tag bebas">₱4,000</div>
           </div>
 
           <!-- Plan Card 3 -->
@@ -1739,7 +1739,7 @@
               </div>
               <div class="plan-desc" style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 6px;">Perfect entry point to fully master macro-tracking and secure dramatic aesthetic changes.</div>
               <div class="plan-features-mini">
-                <div class="plan-feature-item">✓ Home/Gym Program</div>
+                <div class="plan-feature-item">✓ Gym Program</div>
                 <div class="plan-feature-item">✓ Daily Q&A Support</div>
                 <div class="plan-feature-item">✓ Nutrition Adjustments</div>
               </div>
@@ -1959,19 +1959,19 @@
     const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycby17dytpmHoh-sBnFVfxnBI92j9z9e8nUOP5OmItCqLRabB0y4g5aKNFIZbpURt5lCpag/exec';
     const COACH_FB = 'https://www.facebook.com/nardzkie.luyong';
 
-    // GCash QR Code Mapping per Package Price
+    // GCash QR Code Mapping per Package Price (Updated with new 3-Month Plan QR)
     const GCASH_MAPPINGS = {
       "2000": "https://i.imgur.com/NDJpEcX.png",  // 1 Month Package
-      "3000": "https://i.imgur.com/4B1u7Wk.png",  // 3 Months Package
+      "4000": "https://i.imgur.com/l1JaXNj.png",  // 3 Months Package
       "6000": "https://i.imgur.com/YQfgXB5.png",  // 5 Months Package
       "12000": "https://i.imgur.com/AmqbfxD.png", // 8 Months Package
       "25000": "https://i.imgur.com/mBNfNOR.png"  // 1 Year Package
     };
 
-    // Union Bank QR Code Mapping per Package Price
+    // Union Bank QR Code Mapping per Package Price (Updated with new 3-Month Plan QR)
     const BANK_MAPPINGS = {
       "2000": "https://i.imgur.com/qUBhczq.png",  // 1 Month Bank QR
-      "3000": "https://i.imgur.com/0iWudiX.png",  // 3 Months Bank QR
+      "4000": "https://i.imgur.com/RVtN6Uo.png",  // 3 Months Bank QR
       "6000": "https://i.imgur.com/AELld7O.png",  // 5 Months Bank QR
       "12000": "https://i.imgur.com/mAQ8dxg.png", // 8 Months Bank QR
       "25000": "https://i.imgur.com/RweKI9d.png"  // 1 Year Bank QR
@@ -2032,10 +2032,10 @@
       goToPlanStep();
     }
 
-    // Close the overlay modal
+    // Close the overlay modal (FIXED: Corrected property setting syntax)
     function closeModal() {
       const modal = document.getElementById('checkout-modal');
-      modal.style.setProperty('none');
+      modal.style.setProperty('display', 'none', 'important');
       document.body.style.overflow = 'auto';
     }
 
