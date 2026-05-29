@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1h Box - Street Food Cravings Delivery</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght=300;400;500;600;700;850&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f9f8f6; /* Soft premium warm white */
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f0ea;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        /* Color Accents matching Logo: White, Hot Chili Red (#E31E24), and Amber Gold (#F59E0B) */
+        .category-pill-active {
+            background-color: #e31e24;
+            color: #ffffff;
+            border-color: #e31e24;
+        }
+        .btn-chili {
+            background-color: #e31e24;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-chili:hover {
+            background-color: #f43f5e;
+            transform: translateY(-1px);
+        }
+        .text-logo-gold {
+            color: #f59e0b;
+        }
+        .border-logo-gold {
+            border-color: #f59e0b;
+        }
+        .bg-logo-gold-opac {
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+        /* True transparency filter targeting the black background pixels of the logo */
+        .chroma-black {
+            filter: url(#chroma-key-black);
+        }
+    </style>
+</head>
+<body class="text-stone-800 antialiased selection:bg-red-600 selection:text-white">
+
+    <!-- Copy Helper Field for Clipboard Iframe Guardrail compatibility -->
+    <input type="text" id="copy-helper" class="absolute -top-40 left-0 opacity-0 pointer-events-none" readonly>
+
+    <!-- TOAST NOTIFICATION POP-UP -->
+    <div id="toast-notif" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-stone-900 text-white text-xs px-5 py-3 rounded-full shadow-2xl z-50 flex items-center gap-2.5 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-2 border border-stone-800">
+        <i class="fas fa-check-circle text-green-400 text-sm"></i>
+        <span id="toast-text" class="font-medium tracking-wide"></span>
+    </div>
+
+    <!-- SVG CHROMA KEY FILTER (Makes solid black backgrounds completely transparent) -->
+    <svg width="0" height="0" class="absolute">
+        <defs>
+            <filter id="chroma-key-black">
+                <!-- This matrix evaluates R, G, B channels and keys out low luminance (black) to alpha 0 -->
+                <feColorMatrix type="matrix" values="
+                    1   0   0   0   0
+                    0   1   0   0   0
+                    0   0   1   0   0
+                    1.5 1.5 1.5 0  -0.1" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- MAIN CLIENT VIEW (Visible only if not in admin parameter route) -->
+    <div id="client-app-view">
+
+        <!-- MODERN FLOATING ACTION BUTTONS (Stacked vertically on bottom-right) -->
+        <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+            <!-- Floating Track Cravings Button (Egg Yellow Accent) -->
+            <button onclick="openTrackModal()" class="bg-amber-500 hover:bg-amber-400 text-stone-950 px-5 py-3.5 rounded-full shadow-2xl flex items-center gap-2.5 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer border border-amber-400/25">
+                <i class="fas fa-route text-base"></i>
+                <span class="text-xs font-extrabold uppercase tracking-wider hidden sm:inline">Track Cravings</span>
+            </button>
+            
+            <!-- Floating View Basket Button -->
+            <button onclick="openCart()" class="bg-red-600 hover:bg-red-500 text-white px-5 py-4 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer border border-red-500/20">
+                <i class="fas fa-shopping-basket text-lg"></i>
+                <span class="text-xs font-extrabold uppercase tracking-wider hidden sm:inline">View Basket</span>
+                <span id="cart-indicator-num" class="bg-white text-red-600 rounded-full px-2 py-0.5 text-[10px] font-bold">0</span>
+            </button>
+        </div>
+
+        <!-- HEADER BANNER -->
+        <header class="relative w-full bg-stone-950 border-b border-stone-900 pt-6 pb-6 md:pt-10 md:pb-16 overflow-hidden bg-cover bg-center" style="background-image: url('https://i.imgur.com/sbBsUqM.png');">
+            <!-- Rich dark gradient overlay to make the original food colors stand out while keeping text perfectly crisp -->
+            <div class="absolute inset-0 bg-gradient-to-b from-black/85 via-black/55 to-stone-950/90"></div>
+
+            <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+                
+                <!-- Brand Logo centered above intro text (True transparent background + animate-bounce animation) -->
+                <div class="w-2/3 sm:w-1/2 max-w-[200px] md:max-w-xl lg:max-w-2xl flex items-center justify-center p-1 mb-1 md:mb-2">
+                    <img src="https://i.imgur.com/Xs2QPqp.png" alt="1h Box Logo" class="w-full h-auto object-contain chroma-black animate-bounce hover:scale-[1.02] transition-transform duration-300">
+                </div>
+
+                <!-- Introduction Message / Center Message -->
+                <div class="inline-flex items-center gap-2 bg-red-650 text-white rounded-full px-2.5 py-0.5 md:px-3.5 md:py-1 text-[9px] md:text-xs font-semibold mb-2.5 md:mb-6 shadow-md shadow-red-900/10">
+                    <i class="fas fa-pepper-hot text-amber-300 animate-bounce"></i> #1 Food Box in Dumaguete City
+                </div>
+                <h1 class="text-xl md:text-5xl font-extrabold tracking-tight text-white leading-tight drop-shadow-md">
+                    Crispy. Fast. <br class="sm:hidden"><span class="text-red-500">Unbelievably </span><span class="text-amber-500">Good.</span>
+                </h1>
+                <p class="text-stone-300 text-[10px] md:text-sm mt-1.5 md:mt-4 leading-relaxed max-w-lg px-2 font-medium drop-shadow-sm">
+                    Satisfy your ultimate street food cravings in one simple ticket order. Custom flavored coatings, freshly cooked boxes, and secure GCash checkout options.
+                </p>
+                <div class="mt-3 md:mt-8 flex flex-wrap gap-2 md:gap-3 justify-center text-[9px] md:text-xs font-semibold text-stone-300 drop-shadow-sm">
+                    <span class="flex items-center gap-1"><i class="fas fa-clock text-red-500"></i> Fast Delivery</span>
+                    <span class="flex items-center gap-1"><i class="fas fa-motorcycle text-red-500"></i> Free Delivery Near Area</span>
+                    <span class="flex items-center gap-1"><i class="fas fa-check-circle text-red-500"></i> Guaranteed Clean & Hot</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN INTERACTIVE SECTION -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-10">
+
+            <div class="space-y-4 md:space-y-6">
+                
+                <h2 class="text-base md:text-xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2">
+                    <span class="w-1 h-4 md:w-1.5 md:h-5 bg-red-600 rounded"></span> 1h Box Favorites
+                </h2>
+
+                <!-- Menu Container -->
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6" id="menu-grid">
+                    
+                    <!-- Item 1: Assorted Tempura Box -->
+                    <div class="food-card bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between transition-all duration-300 relative group">
+                        <span class="absolute top-4 left-4 bg-red-655 text-white text-[8px] sm:text-[9px] font-extrabold px-1.5 py-0.5 rounded-md uppercase z-10 shadow-sm">
+                            Most Ordered
+                        </span>
+                        
+                        <span id="badge-qty-assorted_tempura" class="hidden absolute top-4 right-4 bg-amber-500 text-black text-[10px] font-extrabold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-lg border border-white">
+                            0
+                        </span>
+                        
+                        <div class="relative w-full aspect-square bg-stone-50 rounded-xl flex items-center justify-center overflow-hidden border border-stone-200">
+                            <img src="https://i.imgur.com/wbXz2q8.png" alt="Assorted Tempura Box" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            
+                            <div class="absolute bottom-2 right-2 flex items-center gap-1.5 sm:gap-2 z-20">
+                                <button id="minus-btn-assorted_tempura" onclick="adjustQty('assorted_tempura', -1); event.stopPropagation();" class="hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer border border-red-500/20">
+                                    <i class="fas fa-minus text-xs sm:text-sm"></i>
+                                </button>
+                                <button onclick="adjustQty('assorted_tempura', 1); event.stopPropagation();" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer border border-amber-400/20">
+                                    <i class="fas fa-plus text-xs sm:text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-2.5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-stone-900 text-xs sm:text-sm md:text-base line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] leading-tight">Assorted Tempura Box</h3>
+                                <p class="text-[10px] md:text-[11px] text-stone-500 mt-1 leading-snug line-clamp-2 hidden sm:block">Inclusions: Nuggets, Tempura, Dynamite, Squid roll, Cheese Sticks, & Fries.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 pt-1 border-t border-stone-100">
+                                <span class="font-extrabold text-logo-gold text-xs sm:text-sm md:text-base">₱100.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 2: Tempura (15 pcs) -->
+                    <div class="food-card bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between transition-all duration-300 relative group">
+                        <span id="badge-qty-tempura" class="hidden absolute top-4 right-4 bg-amber-500 text-black text-[10px] font-extrabold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-lg border border-white">
+                            0
+                        </span>
+                        <div class="relative w-full aspect-square bg-stone-50 rounded-xl flex items-center justify-center overflow-hidden border border-stone-200">
+                            <img src="https://i.imgur.com/WcaxDSO.png" alt="Tempura" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            
+                            <div class="absolute bottom-2 right-2 flex items-center gap-1.5 sm:gap-2 z-20">
+                                <button id="minus-btn-tempura" onclick="adjustQty('tempura', -1); event.stopPropagation();" class="hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer border border-red-500/20">
+                                    <i class="fas fa-minus text-xs sm:text-sm"></i>
+                                </button>
+                                <button onclick="adjustQty('tempura', 1); event.stopPropagation();" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-955 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer border border-amber-400/20">
+                                    <i class="fas fa-plus text-xs sm:text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2.5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-stone-900 text-xs sm:text-sm md:text-base line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] leading-tight">Tempura (15 pcs)</h3>
+                                <p class="text-[10px] md:text-[11px] text-stone-500 mt-1 leading-snug line-clamp-2 hidden sm:block">Classic crispy tempura sticks. Crispy fried golden brown, with special dip.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 pt-1 border-t border-stone-100">
+                                <span class="font-extrabold text-logo-gold text-xs sm:text-sm md:text-base">₱100.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 3: Fries -->
+                    <div class="food-card bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between transition-all duration-300 relative group">
+                        <span id="badge-qty-fries" class="hidden absolute top-4 right-4 bg-amber-500 text-black text-[10px] font-extrabold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-lg border border-white">
+                            0
+                        </span>
+                        <div class="relative w-full aspect-square bg-stone-50 rounded-xl flex items-center justify-center overflow-hidden border border-stone-200">
+                            <img src="https://i.imgur.com/WcaxDSO.png" alt="Fries" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            
+                            <div class="absolute bottom-2 right-2 flex items-center gap-1.5 sm:gap-2 z-20">
+                                <button id="minus-btn-fries" onclick="adjustQty('fries', -1); event.stopPropagation();" class="hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer border border-red-500/20">
+                                    <i class="fas fa-minus text-xs sm:text-sm"></i>
+                                </button>
+                                <button onclick="adjustQty('fries', 1); event.stopPropagation();" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer border border-amber-400/20">
+                                    <i class="fas fa-plus text-xs sm:text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2.5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-stone-900 text-xs sm:text-sm md:text-base line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] leading-tight">French Fries XL</h3>
+                                <p class="text-[10px] md:text-[11px] text-stone-500 mt-1 leading-snug line-clamp-2 hidden sm:block">Crispy, golden potato french fries. Perfectly pairs with Sour Cream or BBQ powder.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 pt-1 border-t border-stone-100">
+                                <span class="font-extrabold text-logo-gold text-xs sm:text-sm md:text-base">₱100.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 4: Squid Roll (7 pcs) -->
+                    <div class="food-card bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between transition-all duration-300 relative group">
+                        <span id="badge-qty-squid_roll" class="hidden absolute top-4 right-4 bg-amber-500 text-black text-[10px] font-extrabold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-lg border border-white">
+                            0
+                        </span>
+                        <div class="relative w-full aspect-square bg-stone-50 rounded-xl flex items-center justify-center overflow-hidden border border-stone-200">
+                            <img src="https://i.imgur.com/WcaxDSO.png" alt="Squid Roll" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            
+                            <div class="absolute bottom-2 right-2 flex items-center gap-1.5 sm:gap-2 z-20">
+                                <button id="minus-btn-squid_roll" onclick="adjustQty('squid_roll', -1); event.stopPropagation();" class="hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-650 hover:bg-red-500 text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer border border-red-500/20">
+                                    <i class="fas fa-minus text-xs sm:text-sm"></i>
+                                </button>
+                                <button onclick="adjustQty('squid_roll', 1); event.stopPropagation();" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer border border-amber-400/20">
+                                    <i class="fas fa-plus text-xs sm:text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2.5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-stone-900 text-xs sm:text-sm md:text-base line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] leading-tight">Squid Roll (7 pcs)</h3>
+                                <p class="text-[10px] md:text-[11px] text-stone-500 mt-1 leading-snug line-clamp-2 hidden sm:block">Delicious, protein-rich squid rolls crispy-fried to order. Savory local favorite.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 pt-1 border-t border-stone-100">
+                                <span class="font-extrabold text-logo-gold text-xs sm:text-sm md:text-base">₱100.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 5: Cheese Sticks (40 pcs) -->
+                    <div class="food-card bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between transition-all duration-300 relative group">
+                        <span id="badge-qty-cheese_sticks" class="hidden absolute top-4 right-4 bg-amber-500 text-black text-[10px] font-extrabold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-lg border border-white">
+                            0
+                    </span>
+                        <div class="relative w-full aspect-square bg-stone-50 rounded-xl flex items-center justify-center overflow-hidden border border-stone-200">
+                            <img src="https://i.imgur.com/WcaxDSO.png" alt="Cheese Sticks" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            
+                            <div class="absolute bottom-2 right-2 flex items-center gap-1.5 sm:gap-2 z-20">
+                                <button id="minus-btn-cheese_sticks" onclick="adjustQty('cheese_sticks', -1); event.stopPropagation();" class="hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-650 hover:bg-red-500 text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer border border-red-500/20">
+                                    <i class="fas fa-minus text-xs sm:text-sm"></i>
+                                </button>
+                                <button onclick="adjustQty('cheese_sticks', 1); event.stopPropagation();" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer border border-amber-400/20">
+                                    <i class="fas fa-plus text-xs sm:text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2.5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-stone-900 text-xs sm:text-sm md:text-base line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] leading-tight">Cheese Sticks (40 pcs)</h3>
+                                <p class="text-[10px] md:text-[11px] text-stone-500 mt-1 leading-snug line-clamp-2 hidden sm:block">Amazing super crunch-packed cheesy finger sticks. Insanely satisfying sharing pack.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 pt-1 border-t border-stone-100">
+                                <span class="font-extrabold text-logo-gold text-xs sm:text-sm md:text-base">₱100.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 6: Lumpiang Veggie (10 pcs) -->
+                    <div class="food-card bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between transition-all duration-300 relative group">
+                        <span id="badge-qty-lumpia_veggie" class="hidden absolute top-4 right-4 bg-amber-500 text-black text-[10px] font-extrabold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-lg border border-white">
+                            0
+                        </span>
+                        <div class="relative w-full aspect-square bg-stone-50 rounded-xl flex items-center justify-center overflow-hidden border border-stone-200">
+                            <img src="https://i.imgur.com/gKbBqdC.png" alt="Lumpiang Veggie" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            
+                            <div class="absolute bottom-2 right-2 flex items-center gap-1.5 sm:gap-2 z-20">
+                                <button id="minus-btn-lumpia_veggie" onclick="adjustQty('lumpia_veggie', -1); event.stopPropagation();" class="hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-650 hover:bg-red-500 text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer border border-red-500/20">
+                                    <i class="fas fa-minus text-xs sm:text-sm"></i>
+                                </button>
+                                <button onclick="adjustQty('lumpia_veggie', 1); event.stopPropagation();" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer border border-amber-400/20">
+                                    <i class="fas fa-plus text-xs sm:text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2.5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-stone-900 text-xs sm:text-sm md:text-base line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] leading-tight">Lumpiang Veggie (10 pcs)</h3>
+                                <p class="text-[10px] md:text-[11px] text-stone-500 mt-1 leading-snug line-clamp-2 hidden sm:block">Delicious vegetarian spring rolls packed with crisp, sautéed local veggies.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 pt-1 border-t border-stone-100">
+                                <span class="font-extrabold text-logo-gold text-xs sm:text-sm md:text-base">₱100.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 7: Lumpiang Shanghai (18 pcs) -->
+                    <div class="food-card bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between transition-all duration-300 relative group">
+                        <span id="badge-qty-lumpia_shanghai" class="hidden absolute top-4 right-4 bg-amber-500 text-black text-[10px] font-extrabold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-lg border border-white">
+                            0
+                        </span>
+                        <div class="relative w-full aspect-square bg-stone-50 rounded-xl flex items-center justify-center overflow-hidden border border-stone-200">
+                            <img src="https://i.imgur.com/WcaxDSO.png" alt="Lumpiang Shanghai" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            
+                            <div class="absolute bottom-2 right-2 flex items-center gap-1.5 sm:gap-2 z-20">
+                                <button id="minus-btn-lumpia_shanghai" onclick="adjustQty('lumpia_shanghai', -1); event.stopPropagation();" class="hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-650 hover:bg-red-500 text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer border border-red-500/20">
+                                    <i class="fas fa-minus text-xs sm:text-sm"></i>
+                                </button>
+                                <button onclick="adjustQty('lumpia_shanghai', 1); event.stopPropagation();" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer border border-amber-400/20">
+                                    <i class="fas fa-plus text-xs sm:text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2.5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-stone-900 text-xs sm:text-sm md:text-base line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] leading-tight">Shanghai (18 pcs)</h3>
+                                <p class="text-[10px] md:text-[11px] text-stone-500 mt-1 leading-snug line-clamp-2 hidden sm:block">Classic savory crowd-favorite pork lumpia shanghai. Handcrafted crisps.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 pt-1 border-t border-stone-100">
+                                <span class="font-extrabold text-logo-gold text-xs sm:text-sm md:text-base">₱100.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 8: Dynamite (10 pcs) -->
+                    <div class="food-card bg-white border border-stone-200 hover:border-stone-300 hover:shadow-md rounded-2xl p-2.5 sm:p-4 flex flex-col justify-between transition-all duration-300 relative group">
+                        <span id="badge-qty-dynamite" class="hidden absolute top-4 right-4 bg-amber-500 text-black text-[10px] font-extrabold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center z-10 shadow-lg border border-white">
+                            0
+                        </span>
+                        <div class="relative w-full aspect-square bg-stone-55 rounded-xl flex items-center justify-center overflow-hidden border border-stone-200">
+                            <img src="https://i.imgur.com/WcaxDSO.png" alt="Dynamite" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            
+                            <div class="absolute bottom-2 right-2 flex items-center gap-1.5 sm:gap-2 z-20">
+                                <button id="minus-btn-dynamite" onclick="adjustQty('dynamite', -1); event.stopPropagation();" class="hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer border border-red-500/20">
+                                    <i class="fas fa-minus text-xs sm:text-sm"></i>
+                                </button>
+                                <button onclick="adjustQty('dynamite', 1); event.stopPropagation();" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer border border-amber-400/20">
+                                    <i class="fas fa-plus text-xs sm:text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2.5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-stone-900 text-xs sm:text-sm md:text-base line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] leading-tight">Dynamite (10 pcs)</h3>
+                                <p class="text-[10px] md:text-[11px] text-stone-500 mt-1 leading-snug line-clamp-2 hidden sm:block">Whole chili pepper stuffed with savory ground pork and melted cheese.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2 pt-1 border-t border-stone-100">
+                                <span class="font-extrabold text-logo-gold text-xs sm:text-sm md:text-base">₱100.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- PREMIUM FULL SCREEN CART DRAWER OVERLAY -->
+        <div id="cart-drawer" class="fixed inset-0 z-50 bg-white hidden flex flex-col h-screen overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+            
+            <!-- Drawer Header -->
+            <div class="p-6 border-b border-stone-200 flex items-center justify-between bg-stone-50 shrink-0">
+                <div class="max-w-3xl mx-auto w-full flex justify-between items-center px-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-stone-900 flex items-center gap-2">
+                            <i class="fas fa-shopping-basket text-red-600"></i> Order Summary
+                        </h2>
+                        <p class="text-[10px] text-stone-500 uppercase tracking-widest font-semibold mt-1">1h Box Dumaguete Delivery Checkout</p>
+                    </div>
+                    <button onclick="closeCart()" class="text-stone-400 hover:text-stone-600 p-2 text-2xl transition cursor-pointer">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Content Segment -->
+            <div class="flex-1 overflow-y-auto py-8 px-4 custom-scrollbar bg-white">
+                <div class="max-w-3xl mx-auto w-full space-y-6">
+                    
+                    <!-- Cart Items Display List -->
+                    <div id="cart-list-container" class="space-y-3">
+                        <!-- Dynamic Cart Entries will go here -->
+                        <div id="empty-cart-msg" class="text-center py-6 text-stone-400 text-xs">
+                            <i class="fas fa-cookie-bite text-2xl mb-2 block"></i> Your basket is currently empty.
+                        </div>
+                    </div>
+
+                    <!-- Customize Notes -->
+                    <div class="space-y-3 border-t border-stone-200 pt-4">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-stone-500 uppercase tracking-wider mb-1.5">Special Request (Optional)</label>
+                            <input type="text" id="cust-notes" placeholder="e.g. Extra hot sauce, wrap separately..." class="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-xs text-stone-900 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Pricing Calculation Breakdown -->
+                    <div class="bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-2">
+                        <div class="flex justify-between text-xs text-stone-600">
+                            <span>Basket Subtotal</span>
+                            <span id="subtotal-label" class="font-medium text-stone-900">₱0.00</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-stone-600">
+                            <span>Estimated Delivery Fee</span>
+                            <span id="delivery-fee-label" class="text-stone-900 font-bold">₱0.00</span>
+                        </div>
+                        <div class="flex justify-between text-sm font-extrabold text-stone-900 border-t border-stone-200 pt-2">
+                            <span>Estimated Total</span>
+                            <span id="total-label" class="text-red-600 text-base">₱0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Delivery & Secure Checkout Form -->
+                    <form id="order-form" class="space-y-4" onsubmit="handleFormSubmit(event)">
+                        
+                        <!-- Customer & Delivery Info -->
+                        <div class="space-y-3 border border-stone-200 bg-white p-4 rounded-2xl shadow-sm">
+                            <span class="text-[10px] font-extrabold text-stone-500 uppercase tracking-widest block mb-1">Customer & Delivery Info</span>
+                            
+                            <input type="text" id="cust-name" required placeholder="Full Name" class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2.5 text-xs text-stone-900 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all">
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="tel" id="cust-phone" required placeholder="Phone Number" class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2.5 text-xs text-stone-900 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all">
+                                <input type="email" id="cust-email" placeholder="Email (Optional)" class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2.5 text-xs text-stone-900 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all">
+                            </div>
+                            
+                            <textarea id="cust-address" required placeholder="Detailed Address (Street Name, Barangay, Landmark in Dumaguete)" rows="2" class="w-full bg-white border border-stone-300 rounded-xl px-3 py-2.5 text-xs text-stone-900 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"></textarea>
+                        </div>
+
+                        <!-- Payment Method Selector Card -->
+                        <div class="space-y-3 border border-stone-200 bg-white p-4 rounded-2xl shadow-sm">
+                            <span class="text-[10px] font-extrabold text-stone-500 uppercase tracking-widest block mb-1">Payment Method</span>
+                            <div class="flex items-center justify-between border border-amber-500 bg-amber-50/50 p-3 rounded-xl">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-money-bill-wave text-amber-500 text-sm"></i>
+                                    <span class="text-xs font-bold text-stone-900">Cash on Delivery (COD)</span>
+                                </div>
+                                <input type="radio" name="payment-method" value="Cash on Delivery" checked class="accent-red-650">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="submit-btn" class="btn-chili w-full py-3.5 mt-4 rounded-xl text-white font-extrabold text-center transition duration-300 flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-xl shadow-red-900/20 cursor-pointer">
+                            <i class="fas fa-lock"></i> Submit Food Order ticket
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- LIVE ORDER TRACKING MODAL (POPUP VIEW) -->
+        <div id="track-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+                <div class="p-6 border-b border-stone-150 bg-stone-50 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-extrabold text-lg text-stone-900 flex items-center gap-2">
+                            <i class="fas fa-search-location text-red-600"></i> Track Cravings
+                        </h3>
+                        <p class="text-[10px] text-stone-500 font-medium">Enter your Order ID or Phone Number to fetch live ticket updates</p>
+                    </div>
+                    <button onclick="closeTrackModal()" class="text-stone-400 hover:text-stone-600 p-1 text-xl cursor-pointer">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 space-y-4 overflow-y-auto custom-scrollbar">
+                    <div class="flex gap-2">
+                        <input type="text" id="track-input" placeholder="e.g. 1HB-94827 or 0975..." class="flex-grow bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-xs font-semibold text-stone-900 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                        <button onclick="fetchTrackingData()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all shadow-md shadow-red-900/10 cursor-pointer flex items-center gap-1.5 shrink-0">
+                            <i class="fas fa-search"></i> Find
+                        </button>
+                    </div>
+
+                    <!-- Loader for search -->
+                    <div id="track-loader" class="hidden text-center py-8">
+                        <div class="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                        <p class="text-xs text-stone-500 font-medium">Looking up database...</p>
+                    </div>
+
+                    <!-- Search Result Wrapper -->
+                    <div id="track-result-container" class="space-y-4">
+                        <div class="text-center py-6 text-stone-400 text-xs">
+                            <i class="fas fa-route text-3xl mb-2 block"></i> Your search results will display here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="bg-stone-950 border-t border-stone-900 py-12 mt-20 text-center text-stone-400 text-xs">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Brand Logo -->
+                <img src="https://i.imgur.com/Xs2QPqp.png" alt="1h Box Logo" class="h-12 w-auto object-contain mx-auto mb-6 opacity-85 chroma-black">
+                
+                <!-- Dynamic Social Connections & Map link -->
+                <div class="flex justify-center items-center gap-6 mb-8">
+                    <!-- Visit Us (Map Icon) -->
+                    <a href="https://maps.google.com/?q=Dumaguete+City" target="_blank" class="w-10 h-10 rounded-full bg-stone-900 hover:bg-red-655 hover:text-white flex items-center justify-center text-red-500 hover:text-white transition-all border border-stone-850 hover:border-red-500 shadow-md" title="Visit Us on Google Maps">
+                        <i class="fas fa-map-marker-alt text-sm"></i>
+                    </a>
+                    <!-- Track Cravings (Live Track Icon) -->
+                    <button onclick="openTrackModal()" class="w-10 h-10 rounded-full bg-stone-900 hover:bg-amber-500 hover:text-black flex items-center justify-center text-amber-500 hover:text-black transition-all border border-stone-850 hover:border-amber-400 shadow-md" title="Track Cravings">
+                        <i class="fas fa-route text-sm"></i>
+                    </button>
+                    <!-- Facebook Group -->
+                    <a href="https://www.facebook.com/groups/607931795340719" target="_blank" class="w-10 h-10 rounded-full bg-stone-900 hover:bg-red-650 hover:text-white flex items-center justify-center text-stone-300 transition-all border border-stone-850 hover:border-red-500 shadow-md" title="Join our Facebook Group">
+                        <i class="fab fa-facebook-f text-sm"></i>
+                    </a>
+                    <!-- Instagram -->
+                    <a href="https://instagram.com/1hbox.dumaguete" target="_blank" class="w-10 h-10 rounded-full bg-stone-900 hover:bg-red-650 hover:text-white flex items-center justify-center text-stone-300 transition-all border border-stone-850 hover:border-red-500 shadow-md" title="Follow us on Instagram">
+                        <i class="fab fa-instagram text-sm"></i>
+                    </a>
+                    <!-- Email Contact -->
+                    <a href="mailto:contact@1hbox.com" class="w-10 h-10 rounded-full bg-stone-900 hover:bg-red-655 hover:text-white flex items-center justify-center text-stone-300 transition-all border border-stone-850 hover:border-red-500 shadow-md" title="Email Us">
+                        <i class="far fa-envelope text-sm"></i>
+                    </a>
+                </div>
+
+                <!-- Copyright Block -->
+                <p class="mb-1 text-stone-500 text-[11px]">1h Box Dumaguete Delivery Hub &copy; 2026. All rights reserved.</p>
+                <p class="text-stone-600 text-[10px]">Serving crisp and golden cravings directly to your doorstep in Dumaguete City.</p>
+            </div>
+        </footer>
+
+    </div>
+
+
+    <!-- ==============================================
+         ADMIN PORTAL VIEW CONTAINER (Passcode Protected)
+         ============================================== -->
+    <div id="admin-app-view" class="hidden min-h-screen bg-stone-50 text-stone-900 p-4 md:p-8">
+        
+        <!-- Admin Access Password Interceptor -->
+        <div id="admin-login-lock" class="max-w-sm mx-auto my-20 bg-white border border-stone-200 p-8 rounded-3xl shadow-xl space-y-6">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h2 class="font-extrabold text-xl text-stone-950">Admin Lockbox</h2>
+                <p class="text-xs text-stone-500 mt-1">Please enter your secret pin to access order sheets.</p>
+            </div>
+            
+            <div class="space-y-2">
+                <input type="password" id="admin-pin" placeholder="Enter PIN (Default: 1hboxadmin)" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-red-500 focus:bg-white transition-all text-center tracking-widest font-extrabold">
+                <button onclick="verifyAdminPin()" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-extrabold text-xs rounded-xl uppercase tracking-wider transition-all shadow-md shadow-red-900/10 cursor-pointer">
+                    Acknowledge Lock
+                </button>
+            </div>
+        </div>
+
+        <!-- Verified Dashboard Body (Visible after Login) -->
+        <div id="admin-dashboard-container" class="max-w-6xl mx-auto hidden space-y-8">
+            
+            <!-- Dashboard Menu Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white border border-stone-200 p-6 rounded-3xl shadow-sm">
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight text-stone-900 flex items-center gap-2.5">
+                        <i class="fas fa-users-cog text-red-600"></i> Admin Panel
+                    </h1>
+                    <p class="text-xs text-stone-500 mt-1 font-semibold">1h Box Kitchen Order Fulfillment & Processing System</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="fetchAdminOrders()" class="bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold px-4 py-2.5 rounded-xl border border-stone-200 transition-all flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-sync-alt"></i> Refresh Orders
+                    </button>
+                    <button onclick="logoutAdmin()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm">
+                        <i class="fas fa-sign-out-alt"></i> Log Out
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white border border-stone-200 p-5 rounded-2xl shadow-sm">
+                    <span class="text-stone-400 text-[10px] font-extrabold uppercase tracking-wider block">Total Sales Revenue</span>
+                    <span id="stat-sales" class="text-stone-900 text-xl font-black block mt-1">₱0.00</span>
+                </div>
+                <div class="bg-white border border-stone-200 p-5 rounded-2xl shadow-sm">
+                    <span class="text-stone-400 text-[10px] font-extrabold uppercase tracking-wider block">Pending Kitchen Queue</span>
+                    <span id="stat-pending" class="text-amber-600 text-xl font-black block mt-1">0 orders</span>
+                </div>
+                <div class="bg-white border border-stone-200 p-5 rounded-2xl shadow-sm">
+                    <span class="text-stone-400 text-[10px] font-extrabold uppercase tracking-wider block">Out for Delivery</span>
+                    <span id="stat-delivery" class="text-blue-600 text-xl font-black block mt-1">0 orders</span>
+                </div>
+                <div class="bg-white border border-stone-200 p-5 rounded-2xl shadow-sm">
+                    <span class="text-stone-400 text-[10px] font-extrabold uppercase tracking-wider block">Completed Tickets</span>
+                    <span id="stat-completed" class="text-green-600 text-xl font-black block mt-1">0 orders</span>
+                </div>
+            </div>
+
+            <!-- Live Filter and Search Container -->
+            <div class="bg-white border border-stone-200 p-4 rounded-3xl shadow-sm flex flex-col md:flex-row gap-3">
+                <div class="relative flex-grow">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-stone-400"></i>
+                    <input type="text" id="admin-search" oninput="filterAdminOrdersTable()" placeholder="Search customer name, Order ID, address, phone..." class="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-4 py-3 text-xs font-semibold text-stone-900 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                </div>
+                <select id="admin-status-filter" onchange="filterAdminOrdersTable()" class="bg-stone-50 border border-stone-250 rounded-xl px-4 py-3 text-xs font-bold text-stone-800 focus:outline-none focus:border-red-500">
+                    <option value="All">All Statuses</option>
+                    <option value="Pending Verification">Pending Verification</option>
+                    <option value="Preparing">Preparing</option>
+                    <option value="Out for Delivery">Out for Delivery</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+
+            <!-- Live Order Sheet Table -->
+            <div class="bg-white border border-stone-200 rounded-3xl shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-stone-600 border-collapse">
+                        <thead>
+                            <tr class="bg-stone-50 text-stone-500 uppercase text-[10px] font-extrabold border-b border-stone-200">
+                                <th class="p-4">Order ID</th>
+                                <th class="p-4">Timestamp</th>
+                                <th class="p-4">Customer Details</th>
+                                <th class="p-4">Delivery Address</th>
+                                <th class="p-4">Orders Breakdown</th>
+                                <th class="p-4">Total Price</th>
+                                <th class="p-4 text-center">Update Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-orders-tbody" class="divide-y divide-stone-150">
+                            <!-- Dynamic Admin list rows generated via Apps Script array -->
+                            <tr>
+                                <td colspan="7" class="text-center p-8 text-stone-400 font-medium">
+                                    <i class="fas fa-spinner animate-spin text-lg mb-2 block text-red-600"></i> Loading spreadsheet databases...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- POPUP MODALS -->
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="fixed inset-0 bg-stone-900/60 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+        <div class="text-center p-8 bg-white border border-stone-200 rounded-3xl max-w-sm mx-4 shadow-2xl">
+            <div class="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h4 class="font-extrabold text-lg text-stone-900">Cooking up your Order</h4>
+            <p class="text-xs text-stone-500 mt-2 leading-relaxed">Sending your food ticket safely to our kitchen database. Please wait...</p>
+        </div>
+    </div>
+
+    <!-- Success Modal (Includes the generated unique Order ID with Copy capabilities) -->
+    <div id="success-modal" class="fixed inset-0 bg-stone-900/60 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+        <div class="text-center p-8 bg-white border border-stone-200 rounded-3xl max-w-sm mx-4 shadow-2xl space-y-4">
+            <div class="w-16 h-16 bg-green-500/10 text-green-400 rounded-full flex items-center justify-center text-3xl mx-auto">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h4 class="font-extrabold text-xl text-stone-900">Order Confirmed!</h4>
+            
+            <div class="bg-stone-50 p-3.5 rounded-xl border border-stone-200 flex flex-col items-center gap-1.5 shadow-inner">
+                <span class="text-[9px] text-stone-400 uppercase tracking-wider font-extrabold">Your Ticket Order ID</span>
+                <div class="flex items-center gap-2">
+                    <span id="success-order-id" class="text-stone-950 font-black tracking-wide text-sm"></span>
+                    <button onclick="copyGeneratedId()" class="text-red-500 hover:text-red-600 p-1 cursor-pointer" title="Copy Order ID">
+                        <i class="far fa-copy text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-xs text-stone-500 leading-relaxed">
+                Thank you! Your Cash on Delivery order has been successfully placed. Our team will prepare your hot, crispy street food cravings shortly. Please prepare the exact payment amount upon delivery.
+            </p>
+            <!-- Button styled in brand egg yellow with black text -->
+            <button onclick="closeModal('success-modal')" class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-stone-950 rounded-xl text-xs font-bold transition border border-amber-600/20 shadow-md shadow-amber-500/10 cursor-pointer">
+                Return to Menu
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="fixed inset-0 bg-stone-900/60 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+        <div class="text-center p-8 bg-white border border-stone-200 rounded-3xl max-w-sm mx-4 shadow-2xl">
+            <div class="w-16 h-16 bg-red-500/10 text-red-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h4 class="font-bold text-lg text-white">Submission Failed</h4>
+            <p id="error-msg" class="text-xs text-stone-500 mt-2 leading-relaxed">There was an issue processing your order connection.</p>
+            <button onclick="closeModal('error-modal')" class="mt-6 w-full py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition cursor-pointer">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- INTERACTIVE SCRIPTS -->
+    <script>
+        const menuQuantities = {
+            assorted_tempura: 0,
+            tempura: 0,
+            fries: 0,
+            squid_roll: 0,
+            cheese_sticks: 0,
+            lumpia_veggie: 0,
+            lumpia_shanghai: 0,
+            dynamite: 0
+        };
+
+        const itemNames = {
+            assorted_tempura: "Assorted Tempura Box",
+            tempura: "Tempura (15 pcs)",
+            fries: "French Fries XL",
+            squid_roll: "Squid Roll (7 pcs)",
+            cheese_sticks: "Cheese Sticks (40 pcs)",
+            lumpia_veggie: "Lumpiang Veggie (10 pcs)",
+            lumpia_shanghai: "Lumpiang Shanghai (18 pcs)",
+            dynamite: "Dynamite (10 pcs)"
+        };
+
+        const pricePerItem = 100.00;
+        const deliveryFeeConst = 100.00; // Minimum delivery fee is ₱100
+        let totalVal = 0;
+        let generatedOrderId = "";
+
+        // Admin database global list
+        let adminOrdersData = [];
+
+        // Check view state on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const view = params.get('view');
+            
+            if (view === 'admin') {
+                document.getElementById('client-app-view').classList.add('hidden');
+                document.getElementById('admin-app-view').classList.remove('hidden');
+                
+                // If already logged in this session, skip pin entry
+                if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+                    document.getElementById('admin-login-lock').classList.add('hidden');
+                    document.getElementById('admin-dashboard-container').classList.remove('hidden');
+                    fetchAdminOrders();
+                }
+            }
+        });
+
+        // Toggle Payment fields dynamically (Reserved logic fallback helper)
+        // Toggle Payment fields dynamically (Reserved logic fallback helper)
+        function togglePaymentMethod(method) {
+            const onlineDetails = document.getElementById('online-payment-details');
+            const onlineLabel = document.getElementById('pay-online-label');
+            const codLabel = document.getElementById('pay-cod-label');
+            
+            if (method === 'GCash') {
+                if(onlineDetails) onlineDetails.classList.remove('hidden');
+                if(onlineLabel) onlineLabel.className = "flex items-center justify-center gap-2 border p-3 rounded-xl cursor-pointer transition-all border-red-500 bg-red-50/50";
+                if(codLabel) codLabel.className = "flex items-center justify-center gap-2 border p-3 rounded-xl cursor-pointer transition-all border-stone-200 hover:bg-stone-50";
+            } else {
+                if(onlineDetails) onlineDetails.classList.add('hidden');
+                if(codLabel) codLabel.className = "flex items-center justify-center gap-2 border p-3 rounded-xl cursor-pointer transition-all border-red-500 bg-red-50/50";
+                if(onlineLabel) onlineLabel.className = "flex items-center justify-center gap-2 border p-3 rounded-xl cursor-pointer transition-all border-stone-200 hover:bg-stone-50";
+            }
+        }
+
+        // Custom Dynamic Toast Notification trigger
+        function showToast(message) {
+            const toast = document.getElementById('toast-notif');
+            const toastText = document.getElementById('toast-text');
+            toastText.textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+            }, 3000);
+        }
+
+        // Adjust item counts on click
+        function adjustQty(item, change) {
+            let current = menuQuantities[item];
+            let target = current + change;
+            if (target < 0) target = 0;
+            menuQuantities[item] = target;
+            
+            // Update the quantity display labels inside card & badges dynamically
+            const badge = document.getElementById(`badge-qty-${item}`);
+            const minusBtn = document.getElementById(`minus-btn-${item}`);
+            
+            if (badge) {
+                if (target > 0) {
+                    badge.textContent = target;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+            
+            if (minusBtn) {
+                if (target > 0) {
+                    minusBtn.classList.remove('hidden');
+                } else {
+                    minusBtn.classList.add('hidden');
+                }
+            }
+            
+            calculateTotal();
+            renderCartList();
+        }
+
+        function calculateTotal() {
+            let totalItems = 0;
+            for (let item in menuQuantities) {
+                totalItems += menuQuantities[item];
+            }
+            
+            const subtotal = totalItems * pricePerItem;
+            const currentDeliveryFee = subtotal > 0 ? deliveryFeeConst : 0.00;
+            totalVal = subtotal + currentDeliveryFee;
+            
+            document.getElementById('subtotal-label').textContent = `₱${subtotal.toFixed(2)}`;
+            document.getElementById('delivery-fee-label').textContent = `₱${currentDeliveryFee.toFixed(2)}`;
+            document.getElementById('total-label').textContent = `₱${totalVal.toFixed(2)}`;
+            document.getElementById('cart-indicator-num').textContent = totalItems;
+        }
+
+        function renderCartList() {
+            const container = document.getElementById('cart-list-container');
+            container.innerHTML = '';
+            
+            let hasItems = false;
+            
+            for (let item in menuQuantities) {
+                if (menuQuantities[item] > 0) {
+                    hasItems = true;
+                    const itemRow = document.createElement('div');
+                    itemRow.className = "flex items-center justify-between text-xs bg-stone-50 p-2.5 rounded-xl border border-stone-250";
+                    itemRow.innerHTML = `
+                        <div class="flex-grow">
+                            <span class="font-bold text-stone-900 block">${itemNames[item]}</span>
+                            <span class="text-stone-500 text-[10px]">Qty: ${menuQuantities[item]} &bull; ₱${(menuQuantities[item] * pricePerItem).toFixed(2)}</span>
+                        </div>
+                        <button type="button" onclick="adjustQty('${item}', -1)" class="text-red-500 hover:text-red-400 p-1 cursor-pointer">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    `;
+                    container.appendChild(itemRow);
+                }
+            }
+            
+            if (!hasItems) {
+                container.innerHTML = `
+                    <div id="empty-cart-msg" class="text-center py-6 text-stone-400 text-xs">
+                        <i class="fas fa-cookie-bite text-2xl mb-2 block"></i> Your basket is currently empty.
+                    </div>
+                `;
+            }
+        }
+
+        function filterCategory(category) {
+            const cards = document.querySelectorAll('.food-card');
+            cards.forEach(card => {
+                const cardCat = card.getAttribute('data-category');
+                if (category === 'all' || cardCat === category) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        // Build summary string of ordered items
+        function buildOrderSummary() {
+            let summary = [];
+            for (let item in menuQuantities) {
+                if (menuQuantities[item] > 0) {
+                    summary.push(`${itemNames[item]} (x${menuQuantities[item]})`);
+                }
+            }
+            return summary.join(', ');
+        }
+
+        // Form Submission Execution
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const summaryString = buildOrderSummary();
+            if (!summaryString) {
+                showError("Please add at least 1 delicious item to your food basket!");
+                return;
+            }
+
+            document.getElementById('loading-modal').classList.remove('hidden');
+
+            const payMethod = "Cash on Delivery"; // Forcing COD
+            sendPayload(payMethod);
+        }
+
+        function sendPayload(payMethod) {
+            const summaryString = buildOrderSummary();
+            
+            // Build unstructured local Order ID tracking code
+            const uniquePart = Math.floor(10000 + Math.random() * 90000);
+            generatedOrderId = `1HB-${uniquePart}`;
+
+            const payload = {
+                orderId: generatedOrderId,
+                name: document.getElementById('cust-name').value,
+                phone: document.getElementById('cust-phone').value,
+                email: document.getElementById('cust-email').value,
+                address: document.getElementById('cust-address').value,
+                notes: document.getElementById('cust-notes').value,
+                flavors: "", // Field removed from UI
+                itemsSummary: summaryString,
+                totalPrice: totalVal,
+                paymentMethod: payMethod,
+                referenceNumber: "N/A", // Manual validation fields removed
+                receiptFile: "",
+                receiptFileName: ""
+            };
+
+            google.script.run
+                .withSuccessHandler(onSuccess)
+                .withFailureHandler(onFailure)
+                .submitOrder(payload);
+        }
+
+        function onSuccess(response) {
+            document.getElementById('loading-modal').classList.add('hidden');
+            if (response.status === "success") {
+                closeCart();
+                document.getElementById('success-order-id').textContent = generatedOrderId;
+                document.getElementById('success-modal').classList.remove('hidden');
+                document.getElementById('order-form').reset();
+                for (let key in menuQuantities) {
+                    menuQuantities[key] = 0;
+                    // Reset labels dynamically on layout reset
+                    const badge = document.getElementById(`badge-qty-${key}`);
+                    const minusBtn = document.getElementById(`minus-btn-${key}`);
+                    if (badge) badge.classList.add('hidden');
+                    if (minusBtn) minusBtn.classList.add('hidden');
+                }
+                calculateTotal();
+                renderCartList();
+            } else {
+                showError(response.message);
+            }
+        }
+
+        function copyGeneratedId() {
+            const copyHelper = document.getElementById('copy-helper');
+            copyHelper.value = generatedOrderId;
+            copyHelper.select();
+            copyHelper.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            showToast("Copied Order ID to clipboard!");
+        }
+
+        // Fetch Tracking details for individual customers
+        function fetchTrackingData() {
+            const query = document.getElementById('track-input').value.trim();
+            if (!query) {
+                showToast("Please enter an Order ID or Phone Number!");
+                return;
+            }
+
+            const loader = document.getElementById('track-loader');
+            const resultBox = document.getElementById('track-result-container');
+            
+            loader.classList.remove('hidden');
+            resultBox.innerHTML = "";
+
+            google.script.run
+                .withSuccessHandler((response) => {
+                    loader.classList.add('hidden');
+                    if (response.status === "success" && response.orders.length > 0) {
+                        resultBox.innerHTML = "";
+                        response.orders.forEach(order => {
+                            const dateParsed = new Date(order.timestamp).toLocaleString();
+                            let statusBadgeColor = "bg-stone-100 text-stone-800";
+                            
+                            if (order.status === "Preparing") statusBadgeColor = "bg-amber-100 text-amber-700 border border-amber-200";
+                            else if (order.status === "Out for Delivery") statusBadgeColor = "bg-blue-100 text-blue-700 border border-blue-200";
+                            else if (order.status === "Delivered") statusBadgeColor = "bg-green-100 text-green-700 border border-green-200";
+                            else if (order.status === "Cancelled") statusBadgeColor = "bg-red-100 text-red-700 border border-red-200";
+                            
+                            const element = document.createElement('div');
+                            element.className = "p-4 bg-stone-50 border border-stone-200 rounded-2xl space-y-3 shadow-inner";
+                            element.innerHTML = `
+                                <div class="flex justify-between items-start border-b border-stone-200/50 pb-2">
+                                    <div>
+                                        <span class="text-[10px] text-stone-400 font-extrabold block">TICKET ID</span>
+                                        <span class="text-stone-900 font-black text-xs">${order.orderId}</span>
+                                    </div>
+                                    <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${statusBadgeColor}">${order.status}</span>
+                                </div>
+                                <div class="text-[11px] space-y-1.5 text-stone-600">
+                                    <p><strong>Cravings:</strong> ${order.items}</p>
+                                    <p><strong>Total Price:</strong> ₱${parseFloat(order.total).toFixed(2)} (Delivery Fee Included)</p>
+                                    <p><strong>Delivery Address:</strong> ${order.address}</p>
+                                    <p><strong>Order Timestamp:</strong> ${dateParsed}</p>
+                                </div>
+                            `;
+                            resultBox.appendChild(element);
+                        });
+                    } else {
+                        resultBox.innerHTML = `
+                            <div class="text-center py-6 text-red-500 text-xs font-semibold">
+                                <i class="fas fa-search-minus text-2xl mb-2 block"></i> No matching orders found. Please try again!
+                            </div>
+                        `;
+                    }
+                })
+                .withFailureHandler((error) => {
+                    loader.classList.add('hidden');
+                    resultBox.innerHTML = `
+                        <div class="text-center py-6 text-red-500 text-xs font-semibold">
+                            <i class="fas fa-exclamation-triangle text-2xl mb-2 block"></i> ${error.message}
+                        </div>
+                    `;
+                })
+                .getOrdersForCustomer(query);
+        }
+
+        // ==============================================
+        // ADMIN DASHBOARD SCRIPTS & STATE CONTROL
+        // ==============================================
+        function verifyAdminPin() {
+            const inputPin = document.getElementById('admin-pin').value.trim();
+            if (inputPin === "1hboxadmin") {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                document.getElementById('admin-login-lock').classList.add('hidden');
+                document.getElementById('admin-dashboard-container').classList.remove('hidden');
+                fetchAdminOrders();
+            } else {
+                showToast("Access Denied: Incorrect PIN parameter!");
+            }
+        }
+
+        function logoutAdmin() {
+            sessionStorage.removeItem('adminLoggedIn');
+            document.getElementById('admin-login-lock').classList.remove('hidden');
+            document.getElementById('admin-dashboard-container').classList.add('hidden');
+        }
+
+        function fetchAdminOrders() {
+            const tbody = document.getElementById('admin-orders-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center p-8 text-stone-400 font-medium">
+                        <i class="fas fa-spinner animate-spin text-lg mb-2 block text-red-600"></i> Refreshing order spreadsheet...
+                    </td>
+                </tr>
+            `;
+
+            google.script.run
+                .withSuccessHandler((response) => {
+                    if (response.status === "success") {
+                        adminOrdersData = response.orders;
+                        renderAdminOrdersTable(adminOrdersData);
+                        calculateAdminStats(adminOrdersData);
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="7" class="text-center p-8 text-red-500 font-bold">${response.message}</td></tr>`;
+                    }
+                })
+                .withFailureHandler((error) => {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center p-8 text-red-500 font-bold">${error.toString()}</td></tr>`;
+                })
+                .getAdminOrders();
+        }
+
+        function calculateAdminStats(orders) {
+            let sales = 0;
+            let pending = 0;
+            let delivery = 0;
+            let completed = 0;
+
+            orders.forEach(order => {
+                const total = parseFloat(order.total) || 0;
+                if (order.status !== "Cancelled") {
+                    sales += total;
+                }
+                if (order.status === "Pending Verification") pending++;
+                else if (order.status === "Preparing") pending++;
+                else if (order.status === "Out for Delivery") delivery++;
+                else if (order.status === "Delivered") completed++;
+            });
+
+            document.getElementById('stat-sales').textContent = `₱${sales.toFixed(2)}`;
+            document.getElementById('stat-pending').textContent = `${pending} orders`;
+            document.getElementById('stat-delivery').textContent = `${delivery} orders`;
+            document.getElementById('stat-completed').textContent = `${completed} orders`;
+        }
+
+        function renderAdminOrdersTable(orders) {
+            const tbody = document.getElementById('admin-orders-tbody');
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center p-8 text-stone-400 font-medium">No order rows found inside the Google Sheet database.</td></tr>`;
+                return;
+            }
+
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                row.className = "hover:bg-stone-50 transition-colors";
+                
+                const formattedDate = new Date(order.timestamp).toLocaleString();
+                
+                row.innerHTML = `
+                    <td class="p-4 font-black text-stone-900">${order.orderId}</td>
+                    <td class="p-4 text-stone-500 font-medium leading-relaxed">${formattedDate}</td>
+                    <td class="p-4">
+                        <div class="font-extrabold text-stone-900">${order.name}</div>
+                        <div class="text-stone-500 text-[11px] font-semibold">${order.phone}</div>
+                    </td>
+                    <td class="p-4 text-stone-700 font-medium max-w-xs truncate" title="${order.address}">${order.address}</td>
+                    <td class="p-4 text-stone-800 font-semibold max-w-xs leading-normal">${order.items}</td>
+                    <td class="p-4 font-black text-red-600 text-sm">₱${parseFloat(order.total).toFixed(2)}</td>
+                    <td class="p-4 text-center">
+                        <select onchange="updateOrderStatusAdmin('${order.orderId}', this.value)" class="bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-900 focus:outline-none focus:border-red-500">
+                            <option value="Pending Verification" ${order.status === 'Pending Verification' ? 'selected' : ''}>Pending Verification</option>
+                            <option value="Preparing" ${order.status === 'Preparing' ? 'selected' : ''}>Preparing</option>
+                            <option value="Out for Delivery" ${order.status === 'Out for Delivery' ? 'selected' : ''}>Out for Delivery</option>
+                            <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                            <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function filterAdminOrdersTable() {
+            const query = document.getElementById('admin-search').value.toLowerCase().trim();
+            const filterStatus = document.getElementById('admin-status-filter').value;
+
+            const filtered = adminOrdersData.filter(order => {
+                const matchesQuery = 
+                    order.orderId.toLowerCase().includes(query) ||
+                    order.name.toLowerCase().includes(query) ||
+                    order.phone.toLowerCase().includes(query) ||
+                    order.address.toLowerCase().includes(query) ||
+                    order.items.toLowerCase().includes(query);
+
+                const matchesStatus = filterStatus === 'All' || order.status === filterStatus;
+
+                return matchesQuery && matchesStatus;
+            });
+
+            renderAdminOrdersTable(filtered);
+        }
+
+        function updateOrderStatusAdmin(orderId, newStatus) {
+            showToast(`Updating ${orderId} to: ${newStatus}...`);
+            
+            google.script.run
+                .withSuccessHandler((response) => {
+                    if (response.status === "success") {
+                        showToast(`Successfully updated ticket ${orderId}!`);
+                        fetchAdminOrders(); // Reload dataset
+                    } else {
+                        showError(response.message);
+                    }
+                })
+                .withFailureHandler((error) => {
+                    showError(error.toString());
+                })
+                .updateOrderStatus(orderId, newStatus);
+        }
+
+        // Error handlers
+        function onFailure(error) {
+            document.getElementById('loading-modal').classList.add('hidden');
+            showError(error.message || "Something went wrong. Please check your internet connection.");
+        }
+
+        function showError(msg) {
+            document.getElementById('error-msg').textContent = msg;
+            document.getElementById('error-modal').classList.remove('hidden');
+        }
+
+        // Close Popups
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
